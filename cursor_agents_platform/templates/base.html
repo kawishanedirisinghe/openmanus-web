@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Cursor Agents Platform{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'cursor-dark': '#1a1a1a',
+                        'cursor-darker': '#0d1117',
+                        'cursor-border': '#30363d',
+                        'cursor-accent': '#58a6ff',
+                        'cursor-hover': '#21262d',
+                        'cursor-success': '#3fb950',
+                        'cursor-warning': '#d29922',
+                        'cursor-error': '#f85149',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .gradient-border {
+            position: relative;
+            background: linear-gradient(45deg, #58a6ff, #3fb950, #d29922);
+            border-radius: 8px;
+            padding: 1px;
+        }
+        
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            inset: 1px;
+            border-radius: 7px;
+            background: #1a1a1a;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #30363d;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #58a6ff;
+            border-radius: 2px;
+        }
+        
+        .agent-card-hover {
+            transition: all 0.2s ease;
+        }
+        
+        .agent-card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(88, 166, 255, 0.1);
+        }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full bg-cursor-darker text-gray-100 dark">
+    <div class="flex h-full">
+        <!-- Sidebar -->
+        {% if session.user_id %}
+        <aside class="w-64 bg-cursor-dark border-r border-cursor-border flex flex-col">
+            <!-- Logo -->
+            <div class="p-6 border-b border-cursor-border">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-cursor-accent to-cursor-success rounded-lg flex items-center justify-center">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-white">Cursor Agents</h1>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="/" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-cursor-hover transition-colors {% if request.endpoint == 'index' %}bg-cursor-hover text-cursor-accent{% endif %}">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/agents" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-cursor-hover transition-colors {% if request.endpoint == 'agents_page' %}bg-cursor-hover text-cursor-accent{% endif %}">
+                    <i class="fas fa-robot w-5"></i>
+                    <span>Agents</span>
+                </a>
+                <a href="/teams" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-cursor-hover transition-colors {% if request.endpoint == 'teams_page' %}bg-cursor-hover text-cursor-accent{% endif %}">
+                    <i class="fas fa-users w-5"></i>
+                    <span>Teams</span>
+                </a>
+                <a href="/executions" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-cursor-hover transition-colors {% if request.endpoint == 'executions_page' %}bg-cursor-hover text-cursor-accent{% endif %}">
+                    <i class="fas fa-play-circle w-5"></i>
+                    <span>Executions</span>
+                </a>
+                
+                <div class="pt-4 border-t border-cursor-border mt-4">
+                    <div class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Tools</div>
+                    <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-cursor-hover transition-colors">
+                        <i class="fas fa-cog w-5"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-cursor-hover transition-colors">
+                        <i class="fas fa-question-circle w-5"></i>
+                        <span>Help</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <!-- User Profile -->
+            <div class="p-4 border-t border-cursor-border">
+                <div class="flex items-center space-x-3">
+                    <img src="https://api.dicebear.com/7.x/initials/svg?seed={{ session.username }}" 
+                         alt="Profile" class="w-8 h-8 rounded-full">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium text-white truncate">{{ session.username }}</div>
+                        <div class="text-xs text-gray-400">Online</div>
+                    </div>
+                    <a href="/logout" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+        {% endif %}
+        
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            {% if session.user_id %}
+            <!-- Header -->
+            <header class="bg-cursor-dark border-b border-cursor-border p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">{% block page_title %}Dashboard{% endblock %}</h1>
+                        <p class="text-gray-400">{% block page_description %}Manage your AI agents and team collaboration{% endblock %}</p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-gray-400 hover:text-white transition-colors">
+                            <i class="fas fa-bell"></i>
+                            <span class="absolute -top-1 -right-1 w-3 h-3 bg-cursor-error rounded-full"></span>
+                        </button>
+                        
+                        <!-- Search -->
+                        <div class="relative">
+                            <input type="text" placeholder="Search agents..." 
+                                   class="w-64 bg-cursor-hover border border-cursor-border rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:border-cursor-accent">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        
+                        <!-- Create Button -->
+                        <button onclick="createAgent()" 
+                                class="bg-cursor-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2">
+                            <i class="fas fa-plus"></i>
+                            <span>Create Agent</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            {% endif %}
+            
+            <!-- Page Content -->
+            <div class="flex-1 overflow-auto">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <!-- Global Modals -->
+    {% include 'modals/create_agent.html' %}
+    {% include 'modals/create_team.html' %}
+    
+    <!-- Global JavaScript -->
+    <script>
+        // Socket.IO connection
+        let socket;
+        if (typeof io !== 'undefined') {
+            socket = io();
+            
+            socket.on('connect', function() {
+                console.log('Connected to server');
+            });
+            
+            socket.on('execution_completed', function(data) {
+                showNotification('Agent execution completed!', 'success');
+                if (window.refreshExecutions) {
+                    window.refreshExecutions();
+                }
+            });
+            
+            socket.on('execution_failed', function(data) {
+                showNotification(`Agent execution failed: ${data.error}`, 'error');
+                if (window.refreshExecutions) {
+                    window.refreshExecutions();
+                }
+            });
+        }
+        
+        // Utility functions
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg text-white z-50 ${
+                type === 'success' ? 'bg-cursor-success' :
+                type === 'error' ? 'bg-cursor-error' :
+                type === 'warning' ? 'bg-cursor-warning' :
+                'bg-cursor-accent'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+        
+        function createAgent() {
+            document.getElementById('createAgentModal').classList.remove('hidden');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+        
+        // API helpers
+        async function apiCall(url, options = {}) {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'API call failed');
+            }
+            
+            return response.json();
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

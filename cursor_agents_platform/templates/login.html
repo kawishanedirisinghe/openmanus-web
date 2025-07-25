@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Cursor Agents Platform</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'cursor-dark': '#1a1a1a',
+                        'cursor-darker': '#0d1117',
+                        'cursor-border': '#30363d',
+                        'cursor-accent': '#58a6ff',
+                        'cursor-hover': '#21262d',
+                        'cursor-success': '#3fb950',
+                        'cursor-warning': '#d29922',
+                        'cursor-error': '#f85149',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #0d1117 0%, #1a1a1a 50%, #0d1117 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="h-full gradient-bg text-gray-100 dark">
+    <div class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" x-data="loginForm()">
+        <div class="max-w-md w-full space-y-8">
+            <!-- Header -->
+            <div class="text-center">
+                <div class="mx-auto w-16 h-16 bg-gradient-to-r from-cursor-accent to-cursor-success rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-robot text-white text-2xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-white">Welcome back</h2>
+                <p class="mt-2 text-gray-400">Sign in to your Cursor Agents account</p>
+            </div>
+            
+            <!-- Login Form -->
+            <div class="glass-effect rounded-xl p-8">
+                <form @submit.prevent="login()" class="space-y-6">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-300 mb-2">
+                            Username
+                        </label>
+                        <div class="relative">
+                            <input id="username" name="username" type="text" required x-model="formData.username"
+                                   class="w-full bg-cursor-hover border border-cursor-border rounded-lg px-4 py-3 pl-11 text-white placeholder-gray-400 focus:outline-none focus:border-cursor-accent transition-colors"
+                                   placeholder="Enter your username">
+                            <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-300 mb-2">
+                            Password
+                        </label>
+                        <div class="relative">
+                            <input id="password" name="password" :type="showPassword ? 'text' : 'password'" required x-model="formData.password"
+                                   class="w-full bg-cursor-hover border border-cursor-border rounded-lg px-4 py-3 pl-11 pr-11 text-white placeholder-gray-400 focus:outline-none focus:border-cursor-accent transition-colors"
+                                   placeholder="Enter your password">
+                            <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <button type="button" @click="showPassword = !showPassword" 
+                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+                                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center">
+                            <input type="checkbox" x-model="rememberMe" 
+                                   class="rounded border-cursor-border bg-cursor-hover text-cursor-accent focus:ring-cursor-accent">
+                            <span class="ml-2 text-sm text-gray-300">Remember me</span>
+                        </label>
+                        <a href="#" class="text-sm text-cursor-accent hover:text-blue-400">Forgot password?</a>
+                    </div>
+                    
+                    <button type="submit" :disabled="isLoading"
+                            class="w-full bg-cursor-accent hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center">
+                        <span x-show="!isLoading">Sign in</span>
+                        <span x-show="isLoading" class="flex items-center">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>
+                            Signing in...
+                        </span>
+                    </button>
+                    
+                    <div x-show="error" x-transition class="p-3 bg-cursor-error bg-opacity-20 border border-cursor-error rounded-lg">
+                        <p class="text-cursor-error text-sm" x-text="error"></p>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Demo Accounts -->
+            <div class="glass-effect rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Demo Accounts</h3>
+                <div class="space-y-3">
+                    <button @click="loginWithDemo('admin', 'admin123')" 
+                            class="w-full text-left p-3 border border-cursor-border rounded-lg hover:border-cursor-accent transition-colors">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-cursor-accent bg-opacity-20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-crown text-cursor-accent text-sm"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-white">Admin Account</div>
+                                <div class="text-sm text-gray-400">Full access to all features</div>
+                            </div>
+                        </div>
+                    </button>
+                    
+                    <button @click="loginWithDemo('alice', 'alice123')" 
+                            class="w-full text-left p-3 border border-cursor-border rounded-lg hover:border-cursor-accent transition-colors">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-cursor-success bg-opacity-20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-user text-cursor-success text-sm"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-white">Alice (Team Member)</div>
+                                <div class="text-sm text-gray-400">Standard team member access</div>
+                            </div>
+                        </div>
+                    </button>
+                    
+                    <button @click="loginWithDemo('bob', 'bob123')" 
+                            class="w-full text-left p-3 border border-cursor-border rounded-lg hover:border-cursor-accent transition-colors">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-cursor-warning bg-opacity-20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-user text-cursor-warning text-sm"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-white">Bob (Team Member)</div>
+                                <div class="text-sm text-gray-400">Standard team member access</div>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Sign Up Link -->
+            <div class="text-center">
+                <p class="text-gray-400">
+                    Don't have an account? 
+                    <a href="/register" class="text-cursor-accent hover:text-blue-400 font-medium">Sign up</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    function loginForm() {
+        return {
+            formData: {
+                username: '',
+                password: ''
+            },
+            showPassword: false,
+            rememberMe: false,
+            isLoading: false,
+            error: '',
+            
+            async login() {
+                if (this.isLoading) return;
+                
+                this.isLoading = true;
+                this.error = '';
+                
+                try {
+                    const response = await fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(this.formData)
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        window.location.href = data.redirect;
+                    } else {
+                        this.error = data.error;
+                    }
+                } catch (error) {
+                    this.error = 'Login failed. Please try again.';
+                } finally {
+                    this.isLoading = false;
+                }
+            },
+            
+            async loginWithDemo(username, password) {
+                this.formData.username = username;
+                this.formData.password = password;
+                await this.login();
+            }
+        }
+    }
+    </script>
+</body>
+</html>

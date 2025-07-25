@@ -1,0 +1,85 @@
+<!-- Create Team Modal -->
+<div id="createTeamModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" x-data="createTeamModal()">
+    <div class="bg-cursor-dark border border-cursor-border rounded-lg w-full max-w-lg">
+        <!-- Modal Header -->
+        <div class="p-6 border-b border-cursor-border">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-white">Create New Team</h2>
+                <button onclick="closeModal('createTeamModal')" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+            <form @submit.prevent="createTeam()" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Team Name</label>
+                    <input type="text" x-model="formData.name" required
+                           class="w-full bg-cursor-hover border border-cursor-border rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cursor-accent"
+                           placeholder="Enter team name">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                    <textarea x-model="formData.description" rows="3"
+                              class="w-full bg-cursor-hover border border-cursor-border rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cursor-accent"
+                              placeholder="Describe the team's purpose"></textarea>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="flex items-center justify-end space-x-4">
+                    <button type="button" onclick="closeModal('createTeamModal')"
+                            class="px-6 py-2 border border-cursor-border rounded-lg text-gray-300 hover:text-white hover:border-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" :disabled="isCreating"
+                            class="px-6 py-2 bg-cursor-accent hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50">
+                        <span x-show="!isCreating">Create Team</span>
+                        <span x-show="isCreating">Creating...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function createTeamModal() {
+    return {
+        isCreating: false,
+        formData: {
+            name: '',
+            description: ''
+        },
+        
+        async createTeam() {
+            if (this.isCreating) return;
+            
+            this.isCreating = true;
+            
+            try {
+                await apiCall('/api/teams', {
+                    method: 'POST',
+                    body: JSON.stringify(this.formData)
+                });
+                
+                showNotification('Team created successfully!', 'success');
+                closeModal('createTeamModal');
+                
+                // Reset form
+                this.formData = { name: '', description: '' };
+                
+                // Refresh page
+                window.location.reload();
+                
+            } catch (error) {
+                showNotification(`Failed to create team: ${error.message}`, 'error');
+            } finally {
+                this.isCreating = false;
+            }
+        }
+    }
+}
+</script>

@@ -1,0 +1,262 @@
+<!-- Create Agent Modal -->
+<div id="createAgentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" x-data="createAgentModal()">
+    <div class="bg-cursor-dark border border-cursor-border rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <!-- Modal Header -->
+        <div class="p-6 border-b border-cursor-border">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-white">Create New Agent</h2>
+                <button onclick="closeModal('createAgentModal')" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+            <form @submit.prevent="createAgent()" class="space-y-6">
+                <!-- Basic Information -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-white">Basic Information</h3>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Agent Name</label>
+                        <input type="text" x-model="formData.name" required
+                               class="w-full bg-cursor-hover border border-cursor-border rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cursor-accent"
+                               placeholder="Enter agent name">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                        <textarea x-model="formData.description" rows="3"
+                                  class="w-full bg-cursor-hover border border-cursor-border rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cursor-accent"
+                                  placeholder="Describe what this agent does"></textarea>
+                    </div>
+                </div>
+                
+                <!-- AI Configuration -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-white">AI Configuration</h3>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Model</label>
+                        <select x-model="formData.model"
+                                class="w-full bg-cursor-hover border border-cursor-border rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cursor-accent">
+                            <option value="gpt-4">GPT-4 (Recommended)</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            <option value="claude-3-opus">Claude 3 Opus</option>
+                            <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">System Prompt</label>
+                        <textarea x-model="formData.system_prompt" rows="6"
+                                  class="w-full bg-cursor-hover border border-cursor-border rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cursor-accent"
+                                  placeholder="Define the agent's role, personality, and instructions..."></textarea>
+                        <p class="text-xs text-gray-400 mt-1">This will guide how the agent behaves and responds</p>
+                    </div>
+                </div>
+                
+                <!-- Capabilities -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-white">Capabilities</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <template x-for="capability in availableCapabilities" :key="capability.id">
+                            <label class="flex items-center space-x-3 p-3 border border-cursor-border rounded-lg hover:border-cursor-accent transition-colors cursor-pointer">
+                                <input type="checkbox" :value="capability.id" x-model="formData.capabilities"
+                                       class="rounded border-cursor-border bg-cursor-hover text-cursor-accent focus:ring-cursor-accent">
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium text-white" x-text="capability.name"></div>
+                                    <div class="text-xs text-gray-400" x-text="capability.description"></div>
+                                </div>
+                            </label>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Team Assignment -->
+                <div class="space-y-4" x-show="teams.length > 0">
+                    <h3 class="text-lg font-semibold text-white">Team Assignment</h3>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Assign to Team (Optional)</label>
+                        <select x-model="formData.team_id"
+                                class="w-full bg-cursor-hover border border-cursor-border rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cursor-accent">
+                            <option value="">No team (Personal agent)</option>
+                            <template x-for="team in teams" :key="team.id">
+                                <option :value="team.id" x-text="team.name"></option>
+                            </template>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Agent Templates -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-white">Quick Templates</h3>
+                    <div class="grid grid-cols-1 gap-3">
+                        <template x-for="template in agentTemplates" :key="template.id">
+                            <button type="button" @click="applyTemplate(template)"
+                                    class="p-4 border border-cursor-border rounded-lg hover:border-cursor-accent transition-colors text-left">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="font-medium text-white" x-text="template.name"></div>
+                                        <div class="text-sm text-gray-400" x-text="template.description"></div>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-gray-400"></i>
+                                </div>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="flex items-center justify-end space-x-4 pt-6 border-t border-cursor-border">
+                    <button type="button" onclick="closeModal('createAgentModal')"
+                            class="px-6 py-2 border border-cursor-border rounded-lg text-gray-300 hover:text-white hover:border-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" :disabled="isCreating"
+                            class="px-6 py-2 bg-cursor-accent hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span x-show="!isCreating">Create Agent</span>
+                        <span x-show="isCreating" class="flex items-center space-x-2">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Creating...</span>
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function createAgentModal() {
+    return {
+        isCreating: false,
+        teams: [],
+        formData: {
+            name: '',
+            description: '',
+            model: 'gpt-4',
+            system_prompt: '',
+            capabilities: [],
+            team_id: ''
+        },
+        
+        availableCapabilities: [
+            { id: 'code_generation', name: 'Code Generation', description: 'Generate and write code' },
+            { id: 'debugging', name: 'Code Debugging', description: 'Find and fix bugs' },
+            { id: 'code_review', name: 'Code Review', description: 'Review code quality' },
+            { id: 'testing', name: 'Testing', description: 'Write and run tests' },
+            { id: 'data_analysis', name: 'Data Analysis', description: 'Analyze datasets' },
+            { id: 'visualization', name: 'Data Visualization', description: 'Create charts and graphs' },
+            { id: 'ui_design', name: 'UI Design', description: 'Design user interfaces' },
+            { id: 'ux_research', name: 'UX Research', description: 'User experience research' },
+            { id: 'writing', name: 'Content Writing', description: 'Write articles and content' },
+            { id: 'translation', name: 'Translation', description: 'Translate languages' },
+            { id: 'research', name: 'Research', description: 'Gather and analyze information' },
+            { id: 'planning', name: 'Project Planning', description: 'Plan and organize projects' }
+        ],
+        
+        agentTemplates: [
+            {
+                id: 'code_assistant',
+                name: 'Code Assistant',
+                description: 'Helps with programming tasks, debugging, and code review',
+                data: {
+                    name: 'Code Assistant',
+                    description: 'A helpful programming assistant that can generate, debug, and review code in multiple languages.',
+                    system_prompt: 'You are a senior software engineer and programming assistant. Help users with coding tasks including:\n\n- Writing clean, efficient code\n- Debugging and fixing issues\n- Code reviews and best practices\n- Architecture recommendations\n- Testing strategies\n\nAlways explain your reasoning and provide examples when helpful.',
+                    capabilities: ['code_generation', 'debugging', 'code_review', 'testing']
+                }
+            },
+            {
+                id: 'data_analyst',
+                name: 'Data Analyst',
+                description: 'Analyzes data, creates visualizations, and provides insights',
+                data: {
+                    name: 'Data Analyst',
+                    description: 'A data analysis expert that can process datasets, create visualizations, and provide meaningful insights.',
+                    system_prompt: 'You are a data analyst with expertise in statistics, data visualization, and business intelligence. Help users with:\n\n- Data cleaning and preprocessing\n- Statistical analysis\n- Creating meaningful visualizations\n- Identifying trends and patterns\n- Providing actionable insights\n\nAlways explain your methodology and assumptions clearly.',
+                    capabilities: ['data_analysis', 'visualization', 'research']
+                }
+            },
+            {
+                id: 'ui_designer',
+                name: 'UI/UX Designer',
+                description: 'Creates beautiful interfaces and user experiences',
+                data: {
+                    name: 'UI/UX Designer',
+                    description: 'A design expert focused on creating beautiful, functional user interfaces and optimal user experiences.',
+                    system_prompt: 'You are a UI/UX designer with expertise in creating user-centered designs. Help users with:\n\n- User interface design\n- User experience optimization\n- Design systems and components\n- Accessibility considerations\n- Visual design principles\n\nFocus on usability, aesthetics, and user satisfaction in all recommendations.',
+                    capabilities: ['ui_design', 'ux_research', 'planning']
+                }
+            },
+            {
+                id: 'content_writer',
+                name: 'Content Writer',
+                description: 'Creates engaging content, articles, and marketing copy',
+                data: {
+                    name: 'Content Writer',
+                    description: 'A skilled writer that creates engaging content for various purposes including articles, marketing, and documentation.',
+                    system_prompt: 'You are a professional content writer with expertise in creating engaging, clear, and purposeful content. Help users with:\n\n- Article and blog writing\n- Marketing copy\n- Technical documentation\n- Social media content\n- Content strategy\n\nAdapt your writing style to match the intended audience and purpose.',
+                    capabilities: ['writing', 'research', 'planning']
+                }
+            }
+        ],
+        
+        async init() {
+            await this.loadTeams();
+        },
+        
+        async loadTeams() {
+            try {
+                this.teams = await apiCall('/api/teams');
+            } catch (error) {
+                console.error('Failed to load teams:', error);
+            }
+        },
+        
+        applyTemplate(template) {
+            Object.assign(this.formData, template.data);
+        },
+        
+        async createAgent() {
+            if (this.isCreating) return;
+            
+            this.isCreating = true;
+            
+            try {
+                const response = await apiCall('/api/agents', {
+                    method: 'POST',
+                    body: JSON.stringify(this.formData)
+                });
+                
+                showNotification('Agent created successfully!', 'success');
+                closeModal('createAgentModal');
+                
+                // Reset form
+                this.formData = {
+                    name: '',
+                    description: '',
+                    model: 'gpt-4',
+                    system_prompt: '',
+                    capabilities: [],
+                    team_id: ''
+                };
+                
+                // Refresh page or redirect
+                if (window.location.pathname === '/agents') {
+                    window.location.reload();
+                } else {
+                    window.location.href = '/agents';
+                }
+                
+            } catch (error) {
+                showNotification(`Failed to create agent: ${error.message}`, 'error');
+            } finally {
+                this.isCreating = false;
+            }
+        }
+    }
+}
+</script>
