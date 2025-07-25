@@ -1,0 +1,98 @@
+# Multi-API Key Configuration Example
+# This configuration shows how to use multiple API keys with rate limiting and automatic fallback
+
+[llm]
+model = "claude-3-7-sonnet-20250219"       # The LLM model to use
+base_url = "https://api.anthropic.com/v1/" # API endpoint URL
+max_tokens = 8192                          # Maximum number of tokens in the response
+temperature = 0.0                          # Controls randomness
+api_type = "anthropic"                     # API type
+
+# Multiple API keys with rate limiting
+# The system will automatically rotate between these keys based on rate limits
+# Priority: lower number = higher priority (used first)
+[[llm.api_keys]]
+api_key = "sk-ant-api03-YOUR_PRIMARY_KEY_HERE"
+name = "primary_key"
+priority = 1
+max_requests_per_minute = 50
+max_requests_per_hour = 1000
+max_requests_per_day = 20000
+enabled = true
+
+[[llm.api_keys]]
+api_key = "sk-ant-api03-YOUR_SECONDARY_KEY_HERE"
+name = "secondary_key"
+priority = 2
+max_requests_per_minute = 30
+max_requests_per_hour = 800
+max_requests_per_day = 15000
+enabled = true
+
+[[llm.api_keys]]
+api_key = "sk-ant-api03-YOUR_BACKUP_KEY_HERE"
+name = "backup_key"
+priority = 3
+max_requests_per_minute = 20
+max_requests_per_hour = 500
+max_requests_per_day = 10000
+enabled = true
+
+# Optional vision model configuration with multiple keys
+[llm.vision]
+model = "claude-3-7-sonnet-20250219"       # The vision model to use
+base_url = "https://api.anthropic.com/v1/" # API endpoint URL for vision model
+max_tokens = 8192                          # Maximum number of tokens in the response
+temperature = 0.0                          # Controls randomness for vision model
+api_type = "anthropic"
+
+# Vision model API keys (can be same or different from main LLM)
+[[llm.vision.api_keys]]
+api_key = "sk-ant-api03-YOUR_VISION_PRIMARY_KEY"
+name = "vision_primary"
+priority = 1
+max_requests_per_minute = 30
+max_requests_per_hour = 600
+max_requests_per_day = 5000
+enabled = true
+
+[[llm.vision.api_keys]]
+api_key = "sk-ant-api03-YOUR_VISION_SECONDARY_KEY"
+name = "vision_secondary"
+priority = 2
+max_requests_per_minute = 20
+max_requests_per_hour = 400
+max_requests_per_day = 3000
+enabled = true
+
+# Optional configuration for specific browser configuration
+[browser]
+headless = false
+disable_security = true
+
+# Optional configuration, Search settings.
+[search]
+engine = "Google"
+fallback_engines = ["DuckDuckGo", "Baidu", "Bing"]
+retry_delay = 60
+max_retries = 3
+lang = "en"
+country = "us"
+
+# Sandbox configuration
+[sandbox]
+use_sandbox = false
+image = "python:3.12-slim"
+work_dir = "/workspace"
+memory_limit = "1g"
+cpu_limit = 2.0
+timeout = 300
+network_enabled = true
+
+# MCP (Model Context Protocol) configuration
+[mcp]
+server_reference = "app.mcp.server"
+
+# Optional Runflow configuration
+[runflow]
+use_data_analysis_agent = false

@@ -1,0 +1,20 @@
+ # Global LLM configuration
+[llm]
+model = "gemini-2.0-flash"                                              # The LLM model to use
+base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"   # API endpoint URL
+api_key = "AIzaSyAwd6PcBM-07xBbbuBqBPc3svJsUMvyc1E"                                                # Your API key
+temperature = 1.0                                                       # Controls randomness
+max_tokens = 8000                                                       # Maximum number of tokens in the response
+
+
+# Optional configuration for specific LLM models for Google
+[llm.vision]
+model = "gemini-2.0-flash"                                      # The vision model to use
+base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"  # API endpoint URL for vision model
+api_key = "AIzaSyDwDj4i9tptBolcKGHMlqxMOi_CjisQdJE"                                               # Your API key for vision model
+max_tokens = 8000                                                      # Maximum number of tokens in the response
+temperature = 1.0
+                                                 # Controls randomness for vision model
+# Optional configuration for run-flow
+[runflow]
+use_data_analysis_agent = true     # Disabled by default, change to true to activate

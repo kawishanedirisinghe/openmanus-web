@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block title %}OpenManus AI Platform - Dashboard{% endblock %}
+
+{% block content %}
+<div class="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Sidebar -->
+    <div id="sidebar" class="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 sidebar-transition flex flex-col">
+        <!-- Header -->
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white">OpenManus AI</h1>
+                <div class="flex items-center space-x-2">
+                    <button onclick="toggleTheme()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-moon dark:hidden"></i>
+                        <i class="fas fa-sun hidden dark:inline"></i>
+                    </button>
+                    <button onclick="showSettings()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Chat Button -->
+        <div class="p-4">
+            <button onclick="createNewChat()" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-4 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2">
+                <i class="fas fa-plus"></i>
+                <span>New Chat</span>
+            </button>
+        </div>
+
+        <!-- Chat Sessions -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="p-4">
+                <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Recent Chats</h3>
+                <div id="chat-sessions" class="space-y-2">
+                    <!-- Chat sessions will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white text-sm"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ session.username }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Online</p>
+                </div>
+                <a href="/logout" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-sign-out-alt text-gray-500"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+        <!-- Top Bar -->
+        <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div id="chat-title" class="text-lg font-semibold text-gray-900 dark:text-white">
+                        Select a chat or start a new conversation
+                    </div>
+                </div>
+                
+                <!-- Model Selector -->
+                <div class="flex items-center space-x-4">
+                    <div class="model-selector rounded-lg p-2">
+                        <select id="model-select" class="bg-transparent text-sm font-medium text-gray-700 dark:text-gray-300 border-none outline-none">
+                            <option value="gpt-4">GPT-4</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            <option value="claude-3-opus">Claude 3 Opus</option>
+                            <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                        </select>
+                    </div>
+                    <button onclick="showAdvancedSettings()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-sliders-h"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="flex-1 flex flex-col">
+            <!-- Messages Container -->
+            <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Welcome Message -->
+                <div id="welcome-message" class="text-center py-20">
+                    <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-robot text-white text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Welcome to OpenManus AI</h2>
+                    <p class="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                        Start a conversation with our advanced AI models. Ask questions, get help with coding, or explore creative ideas.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-end space-x-4">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <textarea
+                                    id="message-input"
+                                    placeholder="Type your message here... (Shift+Enter for new line)"
+                                    class="w-full p-4 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    rows="1"
+                                    style="min-height: 56px; max-height: 200px;"
+                                ></textarea>
+                                <button
+                                    id="send-button"
+                                    onclick="sendMessage()"
+                                    disabled
+                                    class="absolute right-2 bottom-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="flex items-center justify-between mt-3 text-sm text-gray-500 dark:text-gray-400">
+                        <div class="flex items-center space-x-4">
+                            <button onclick="insertTemplate('code')" class="hover:text-blue-500 transition-colors">
+                                <i class="fas fa-code mr-1"></i> Code Help
+                            </button>
+                            <button onclick="insertTemplate('explain')" class="hover:text-blue-500 transition-colors">
+                                <i class="fas fa-lightbulb mr-1"></i> Explain
+                            </button>
+                            <button onclick="insertTemplate('creative')" class="hover:text-blue-500 transition-colors">
+                                <i class="fas fa-magic mr-1"></i> Creative
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span id="char-count">0</span>
+                            <span>/</span>
+                            <span>4000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Settings</h3>
+                    <button onclick="hideSettings()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Temperature</label>
+                        <input type="range" id="temperature-slider" min="0" max="2" step="0.1" value="0.7" 
+                               class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>Conservative</span>
+                            <span id="temperature-value">0.7</span>
+                            <span>Creative</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max Tokens</label>
+                        <input type="number" id="max-tokens" value="2048" min="1" max="4096"
+                               class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Auto-save conversations</span>
+                        <input type="checkbox" id="auto-save" checked class="rounded">
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button onclick="hideSettings()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                    <button onclick="saveSettings()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40 flex items-center justify-center">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 flex items-center space-x-4">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <span class="text-gray-900 dark:text-white">Processing your request...</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let socket;
+    let currentSessionId = null;
+    let isConnected = false;
+
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeSocket();
+        loadChatSessions();
+        setupEventListeners();
+        loadUserPreferences();
+    });
+
+    function initializeSocket() {
+        socket = io();
+        
+        socket.on('connect', function() {
+            isConnected = true;
+            console.log('Connected to server');
+        });
+        
+        socket.on('disconnect', function() {
+            isConnected = false;
+            console.log('Disconnected from server');
+        });
+        
+        socket.on('message_added', function(message) {
+            addMessageToChat(message);
+            hideLoading();
+        });
+        
+        socket.on('error', function(data) {
+            showNotification(data.message, 'error');
+            hideLoading();
+        });
+    }
+
+    function setupEventListeners() {
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        
+        messageInput.addEventListener('input', function() {
+            const charCount = this.value.length;
+            document.getElementById('char-count').textContent = charCount;
+            sendButton.disabled = charCount === 0;
+            
+            // Auto-resize textarea
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+        
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // Temperature slider
+        const tempSlider = document.getElementById('temperature-slider');
+        tempSlider.addEventListener('input', function() {
+            document.getElementById('temperature-value').textContent = this.value;
+        });
+    }
+
+    async function loadChatSessions() {
+        try {
+            const response = await fetch('/api/chat/sessions');
+            const sessions = await response.json();
+            
+            const container = document.getElementById('chat-sessions');
+            container.innerHTML = '';
+            
+            sessions.forEach(session => {
+                const sessionElement = createSessionElement(session);
+                container.appendChild(sessionElement);
+            });
+        } catch (error) {
+            console.error('Error loading chat sessions:', error);
+        }
+    }
+
+    function createSessionElement(session) {
+        const div = document.createElement('div');
+        div.className = 'p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors';
+        div.onclick = () => loadChatSession(session.id);
+        
+        div.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        ${session.last_message}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        ${formatTime(session.created_at)} • ${session.message_count} messages
+                    </p>
+                </div>
+                <button onclick="deleteSession('${session.id}'); event.stopPropagation();" 
+                        class="p-1 text-gray-400 hover:text-red-500 transition-colors">
+                    <i class="fas fa-trash text-xs"></i>
+                </button>
+            </div>
+        `;
+        
+        return div;
+    }
+
+    async function createNewChat() {
+        try {
+            const response = await fetch('/api/chat/session', { method: 'POST' });
+            const data = await response.json();
+            
+            currentSessionId = data.session_id;
+            document.getElementById('chat-title').textContent = 'New Chat';
+            document.getElementById('messages-container').innerHTML = '';
+            document.getElementById('welcome-message').style.display = 'block';
+            
+            loadChatSessions(); // Refresh the sidebar
+        } catch (error) {
+            showNotification('Error creating new chat', 'error');
+        }
+    }
+
+    async function loadChatSession(sessionId) {
+        try {
+            const response = await fetch(`/api/chat/session/${sessionId}`);
+            const session = await response.json();
+            
+            currentSessionId = sessionId;
+            document.getElementById('chat-title').textContent = `Chat ${sessionId.substring(0, 8)}`;
+            document.getElementById('welcome-message').style.display = 'none';
+            
+            const container = document.getElementById('messages-container');
+            container.innerHTML = '';
+            
+            session.messages.forEach(message => {
+                addMessageToChat(message, false);
+            });
+            
+            scrollToBottom();
+        } catch (error) {
+            showNotification('Error loading chat session', 'error');
+        }
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('message-input');
+        const message = input.value.trim();
+        
+        if (!message || !currentSessionId) {
+            if (!currentSessionId) {
+                createNewChat().then(() => {
+                    if (message) sendMessage();
+                });
+            }
+            return;
+        }
+        
+        const model = document.getElementById('model-select').value;
+        const temperature = parseFloat(document.getElementById('temperature-slider').value);
+        const maxTokens = parseInt(document.getElementById('max-tokens').value);
+        
+        socket.emit('send_message', {
+            session_id: currentSessionId,
+            message: message,
+            model: model,
+            temperature: temperature,
+            max_tokens: maxTokens
+        });
+        
+        input.value = '';
+        input.style.height = 'auto';
+        document.getElementById('char-count').textContent = '0';
+        document.getElementById('send-button').disabled = true;
+        
+        showLoading();
+        hideWelcomeMessage();
+    }
+
+    function addMessageToChat(message, animate = true) {
+        const container = document.getElementById('messages-container');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${animate ? 'animate' : ''}`;
+        
+        const isUser = message.role === 'user';
+        const isSystem = message.role === 'system';
+        
+        messageDiv.innerHTML = `
+            <div class="flex ${isUser ? 'justify-end' : 'justify-start'} mb-4">
+                <div class="flex ${isUser ? 'flex-row-reverse' : 'flex-row'} items-start space-x-3 max-w-3xl">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center ${
+                        isUser ? 'bg-blue-500' : isSystem ? 'bg-red-500' : 'bg-gray-500'
+                    }">
+                        <i class="fas ${isUser ? 'fa-user' : isSystem ? 'fa-exclamation' : 'fa-robot'} text-white text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="${isUser ? 'bg-blue-500 text-white' : isSystem ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white'} rounded-lg p-4 shadow-sm">
+                            <div class="message-content">${isUser || isSystem ? escapeHtml(message.content) : renderMarkdown(message.content)}</div>
+                        </div>
+                        <div class="flex items-center justify-between mt-2 text-xs text-gray-500">
+                            <span>${formatTime(message.timestamp)}</span>
+                            ${!isUser && !isSystem ? `
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">${message.metadata?.model || 'AI'}</span>
+                                    <button onclick="copyToClipboard('${escapeHtml(message.content)}')" class="hover:text-blue-500 transition-colors">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    function hideWelcomeMessage() {
+        const welcomeMsg = document.getElementById('welcome-message');
+        if (welcomeMsg) {
+            welcomeMsg.style.display = 'none';
+        }
+    }
+
+    function scrollToBottom() {
+        const container = document.getElementById('messages-container');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function showLoading() {
+        document.getElementById('loading-overlay').classList.remove('hidden');
+    }
+
+    function hideLoading() {
+        document.getElementById('loading-overlay').classList.add('hidden');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function insertTemplate(type) {
+        const input = document.getElementById('message-input');
+        const templates = {
+            code: "Can you help me with this code?\n\n```\n// Paste your code here\n```",
+            explain: "Can you explain how this works?\n\n",
+            creative: "I need help with a creative project. "
+        };
+        
+        input.value = templates[type] || '';
+        input.focus();
+        input.dispatchEvent(new Event('input'));
+    }
+
+    function showSettings() {
+        document.getElementById('settings-modal').classList.remove('hidden');
+    }
+
+    function hideSettings() {
+        document.getElementById('settings-modal').classList.add('hidden');
+    }
+
+    function showAdvancedSettings() {
+        showSettings();
+    }
+
+    async function saveSettings() {
+        const preferences = {
+            temperature: parseFloat(document.getElementById('temperature-slider').value),
+            max_tokens: parseInt(document.getElementById('max-tokens').value),
+            auto_save: document.getElementById('auto-save').checked
+        };
+        
+        try {
+            await fetch('/api/preferences', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(preferences)
+            });
+            
+            showNotification('Settings saved successfully', 'success');
+            hideSettings();
+        } catch (error) {
+            showNotification('Error saving settings', 'error');
+        }
+    }
+
+    async function loadUserPreferences() {
+        try {
+            const response = await fetch('/api/preferences');
+            const preferences = await response.json();
+            
+            if (preferences.temperature !== undefined) {
+                document.getElementById('temperature-slider').value = preferences.temperature;
+                document.getElementById('temperature-value').textContent = preferences.temperature;
+            }
+            if (preferences.max_tokens !== undefined) {
+                document.getElementById('max-tokens').value = preferences.max_tokens;
+            }
+            if (preferences.auto_save !== undefined) {
+                document.getElementById('auto-save').checked = preferences.auto_save;
+            }
+        } catch (error) {
+            console.error('Error loading preferences:', error);
+        }
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('-translate-x-full');
+    }
+
+    async function deleteSession(sessionId) {
+        if (confirm('Are you sure you want to delete this chat session?')) {
+            // In a real app, you'd make an API call to delete the session
+            showNotification('Session deleted', 'success');
+            loadChatSessions();
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block title %}Register - OpenManus AI Platform{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center gradient-bg">
+    <div class="max-w-md w-full space-y-8 p-8">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 glass-effect">
+            <!-- Logo and Title -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-robot text-white text-2xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Join OpenManus AI</h2>
+                <p class="text-gray-600 dark:text-gray-400">Create your account to get started</p>
+            </div>
+
+            <!-- Register Form -->
+            <form id="register-form" class="mt-8 space-y-6">
+                <div class="space-y-4">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Username
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-user text-gray-400"></i>
+                            </div>
+                            <input
+                                id="username"
+                                name="username"
+                                type="text"
+                                required
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                placeholder="Choose a username"
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Email Address
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-envelope text-gray-400"></i>
+                            </div>
+                            <input
+                                id="email"
+                                name="email"
+                                type="email"
+                                required
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                placeholder="Enter your email"
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Password
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                required
+                                class="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                placeholder="Create a password"
+                            >
+                            <button
+                                type="button"
+                                onclick="togglePassword()"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                            >
+                                <i id="password-toggle" class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
+                            </button>
+                        </div>
+                        <div class="mt-2">
+                            <div class="flex items-center space-x-1 text-xs">
+                                <div id="length-check" class="flex items-center text-gray-400">
+                                    <i class="fas fa-circle text-xs mr-1"></i>
+                                    <span>8+ characters</span>
+                                </div>
+                                <div id="uppercase-check" class="flex items-center text-gray-400">
+                                    <i class="fas fa-circle text-xs mr-1"></i>
+                                    <span>Uppercase</span>
+                                </div>
+                                <div id="number-check" class="flex items-center text-gray-400">
+                                    <i class="fas fa-circle text-xs mr-1"></i>
+                                    <span>Number</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="confirm-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Confirm Password
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            <input
+                                id="confirm-password"
+                                name="confirm-password"
+                                type="password"
+                                required
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                placeholder="Confirm your password"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms and Conditions -->
+                <div class="flex items-center">
+                    <input
+                        id="terms"
+                        name="terms"
+                        type="checkbox"
+                        required
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    >
+                    <label for="terms" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                        I agree to the
+                        <a href="#" class="text-blue-600 hover:text-blue-500 transition-colors">Terms of Service</a>
+                        and
+                        <a href="#" class="text-blue-600 hover:text-blue-500 transition-colors">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <div>
+                    <button
+                        type="submit"
+                        id="submit-btn"
+                        disabled
+                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <i class="fas fa-user-plus text-blue-300 group-hover:text-blue-200"></i>
+                        </span>
+                        Create Account
+                    </button>
+                </div>
+
+                <!-- Error Message -->
+                <div id="error-message" class="hidden bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <span id="error-text"></span>
+                    </div>
+                </div>
+
+                <!-- Success Message -->
+                <div id="success-message" class="hidden bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-200 px-4 py-3 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span>Account created successfully! Redirecting...</span>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Login Link -->
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Already have an account?
+                    <a href="/login" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                        Sign in here
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('register-form');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const submitBtn = document.getElementById('submit-btn');
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+        const errorText = document.getElementById('error-text');
+
+        // Password validation
+        passwordInput.addEventListener('input', validatePassword);
+        confirmPasswordInput.addEventListener('input', validateForm);
+        document.getElementById('terms').addEventListener('change', validateForm);
+
+        function validatePassword() {
+            const password = passwordInput.value;
+            
+            // Length check
+            const lengthCheck = document.getElementById('length-check');
+            if (password.length >= 8) {
+                lengthCheck.classList.remove('text-gray-400');
+                lengthCheck.classList.add('text-green-500');
+                lengthCheck.querySelector('i').classList.remove('fa-circle');
+                lengthCheck.querySelector('i').classList.add('fa-check-circle');
+            } else {
+                lengthCheck.classList.remove('text-green-500');
+                lengthCheck.classList.add('text-gray-400');
+                lengthCheck.querySelector('i').classList.remove('fa-check-circle');
+                lengthCheck.querySelector('i').classList.add('fa-circle');
+            }
+
+            // Uppercase check
+            const uppercaseCheck = document.getElementById('uppercase-check');
+            if (/[A-Z]/.test(password)) {
+                uppercaseCheck.classList.remove('text-gray-400');
+                uppercaseCheck.classList.add('text-green-500');
+                uppercaseCheck.querySelector('i').classList.remove('fa-circle');
+                uppercaseCheck.querySelector('i').classList.add('fa-check-circle');
+            } else {
+                uppercaseCheck.classList.remove('text-green-500');
+                uppercaseCheck.classList.add('text-gray-400');
+                uppercaseCheck.querySelector('i').classList.remove('fa-check-circle');
+                uppercaseCheck.querySelector('i').classList.add('fa-circle');
+            }
+
+            // Number check
+            const numberCheck = document.getElementById('number-check');
+            if (/\d/.test(password)) {
+                numberCheck.classList.remove('text-gray-400');
+                numberCheck.classList.add('text-green-500');
+                numberCheck.querySelector('i').classList.remove('fa-circle');
+                numberCheck.querySelector('i').classList.add('fa-check-circle');
+            } else {
+                numberCheck.classList.remove('text-green-500');
+                numberCheck.classList.add('text-gray-400');
+                numberCheck.querySelector('i').classList.remove('fa-check-circle');
+                numberCheck.querySelector('i').classList.add('fa-circle');
+            }
+
+            validateForm();
+        }
+
+        function validateForm() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const termsChecked = document.getElementById('terms').checked;
+
+            const isPasswordValid = password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
+            const isPasswordMatch = password === confirmPassword && confirmPassword.length > 0;
+            const isFormValid = isPasswordValid && isPasswordMatch && termsChecked;
+
+            // Update confirm password field styling
+            if (confirmPassword.length > 0) {
+                if (isPasswordMatch) {
+                    confirmPasswordInput.classList.remove('border-red-300');
+                    confirmPasswordInput.classList.add('border-green-300');
+                } else {
+                    confirmPasswordInput.classList.remove('border-green-300');
+                    confirmPasswordInput.classList.add('border-red-300');
+                }
+            } else {
+                confirmPasswordInput.classList.remove('border-red-300', 'border-green-300');
+            }
+
+            submitBtn.disabled = !isFormValid;
+        }
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const username = formData.get('username');
+            const email = formData.get('email');
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirm-password');
+
+            // Hide previous messages
+            errorMessage.classList.add('hidden');
+            successMessage.classList.add('hidden');
+
+            // Client-side validation
+            if (password !== confirmPassword) {
+                errorText.textContent = 'Passwords do not match';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    successMessage.classList.remove('hidden');
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 1500);
+                } else {
+                    errorText.textContent = data.error;
+                    errorMessage.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorText.textContent = 'An error occurred. Please try again.';
+                errorMessage.classList.remove('hidden');
+            }
+        });
+    });
+
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('password-toggle');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+</script>
+{% endblock %}
