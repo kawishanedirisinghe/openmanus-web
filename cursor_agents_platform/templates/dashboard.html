@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_description %}Overview of your AI agents and team activity{% endblock %}
+
+{% block content %}
+<div class="p-6 space-y-6" x-data="dashboardData()">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-cursor-dark border border-cursor-border rounded-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-400">Total Agents</p>
+                    <p class="text-3xl font-bold text-white" x-text="stats.totalAgents">0</p>
+                </div>
+                <div class="w-12 h-12 bg-cursor-accent bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-robot text-cursor-accent text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center">
+                <span class="text-cursor-success text-sm font-medium">+2 this week</span>
+            </div>
+        </div>
+        
+        <div class="bg-cursor-dark border border-cursor-border rounded-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-400">Active Executions</p>
+                    <p class="text-3xl font-bold text-white" x-text="stats.activeExecutions">0</p>
+                </div>
+                <div class="w-12 h-12 bg-cursor-warning bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-play-circle text-cursor-warning text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center">
+                <span class="text-gray-400 text-sm">Running now</span>
+            </div>
+        </div>
+        
+        <div class="bg-cursor-dark border border-cursor-border rounded-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-400">Team Members</p>
+                    <p class="text-3xl font-bold text-white" x-text="stats.teamMembers">0</p>
+                </div>
+                <div class="w-12 h-12 bg-cursor-success bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-users text-cursor-success text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center">
+                <span class="text-cursor-success text-sm font-medium">Active collaboration</span>
+            </div>
+        </div>
+        
+        <div class="bg-cursor-dark border border-cursor-border rounded-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-400">Success Rate</p>
+                    <p class="text-3xl font-bold text-white" x-text="stats.successRate + '%'">0%</p>
+                </div>
+                <div class="w-12 h-12 bg-cursor-success bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-line text-cursor-success text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center">
+                <span class="text-cursor-success text-sm font-medium">+5% from last month</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="bg-cursor-dark border border-cursor-border rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-white mb-4">Quick Actions</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button onclick="createAgent()" class="p-4 border border-cursor-border rounded-lg hover:border-cursor-accent transition-colors group">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-cursor-accent bg-opacity-20 rounded-lg flex items-center justify-center group-hover:bg-opacity-30">
+                        <i class="fas fa-plus text-cursor-accent"></i>
+                    </div>
+                    <div class="text-left">
+                        <div class="font-medium text-white">Create Agent</div>
+                        <div class="text-sm text-gray-400">Build a new AI agent</div>
+                    </div>
+                </div>
+            </button>
+            
+            <button onclick="window.location.href='/teams'" class="p-4 border border-cursor-border rounded-lg hover:border-cursor-accent transition-colors group">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-cursor-success bg-opacity-20 rounded-lg flex items-center justify-center group-hover:bg-opacity-30">
+                        <i class="fas fa-users text-cursor-success"></i>
+                    </div>
+                    <div class="text-left">
+                        <div class="font-medium text-white">Join Team</div>
+                        <div class="text-sm text-gray-400">Collaborate with others</div>
+                    </div>
+                </div>
+            </button>
+            
+            <button onclick="window.location.href='/executions'" class="p-4 border border-cursor-border rounded-lg hover:border-cursor-accent transition-colors group">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-cursor-warning bg-opacity-20 rounded-lg flex items-center justify-center group-hover:bg-opacity-30">
+                        <i class="fas fa-history text-cursor-warning"></i>
+                    </div>
+                    <div class="text-left">
+                        <div class="font-medium text-white">View History</div>
+                        <div class="text-sm text-gray-400">Check execution logs</div>
+                    </div>
+                </div>
+            </button>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Agents -->
+        <div class="bg-cursor-dark border border-cursor-border rounded-lg">
+            <div class="p-6 border-b border-cursor-border">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white">Recent Agents</h3>
+                    <a href="/agents" class="text-cursor-accent hover:text-blue-400 text-sm font-medium">View all</a>
+                </div>
+            </div>
+            <div class="p-6 space-y-4">
+                <template x-for="agent in recentAgents" :key="agent.id">
+                    <div class="flex items-center justify-between p-4 border border-cursor-border rounded-lg hover:border-cursor-accent transition-colors cursor-pointer" 
+                         @click="window.location.href = '/agent/' + agent.id">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 bg-gradient-to-r from-cursor-accent to-cursor-success rounded-lg flex items-center justify-center">
+                                <i class="fas fa-robot text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-white" x-text="agent.name"></div>
+                                <div class="text-sm text-gray-400" x-text="agent.description"></div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm text-white" x-text="agent.execution_count + ' runs'"></div>
+                            <div class="text-xs text-gray-400" x-text="formatDate(agent.updated_at)"></div>
+                        </div>
+                    </div>
+                </template>
+                
+                <div x-show="recentAgents.length === 0" class="text-center py-8 text-gray-400">
+                    <i class="fas fa-robot text-3xl mb-2"></i>
+                    <p>No agents yet. Create your first agent to get started!</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Executions -->
+        <div class="bg-cursor-dark border border-cursor-border rounded-lg">
+            <div class="p-6 border-b border-cursor-border">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white">Recent Executions</h3>
+                    <a href="/executions" class="text-cursor-accent hover:text-blue-400 text-sm font-medium">View all</a>
+                </div>
+            </div>
+            <div class="p-6 space-y-4">
+                <template x-for="execution in recentExecutions" :key="execution.id">
+                    <div class="flex items-center justify-between p-4 border border-cursor-border rounded-lg">
+                        <div class="flex items-center space-x-4">
+                            <div :class="getStatusIcon(execution.status)" class="w-3 h-3 rounded-full"></div>
+                            <div>
+                                <div class="font-medium text-white" x-text="execution.agent_name || 'Unknown Agent'"></div>
+                                <div class="text-sm text-gray-400" x-text="execution.task.substring(0, 50) + '...'"></div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div :class="getStatusClass(execution.status)" class="text-sm font-medium" x-text="execution.status"></div>
+                            <div class="text-xs text-gray-400" x-text="formatDate(execution.created_at)"></div>
+                        </div>
+                    </div>
+                </template>
+                
+                <div x-show="recentExecutions.length === 0" class="text-center py-8 text-gray-400">
+                    <i class="fas fa-play-circle text-3xl mb-2"></i>
+                    <p>No executions yet. Run an agent to see results here!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Team Activity -->
+    <div class="bg-cursor-dark border border-cursor-border rounded-lg">
+        <div class="p-6 border-b border-cursor-border">
+            <h3 class="text-lg font-semibold text-white">Team Activity</h3>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                <template x-for="activity in teamActivity" :key="activity.id">
+                    <div class="flex items-center space-x-4">
+                        <img :src="activity.user_avatar" class="w-8 h-8 rounded-full">
+                        <div class="flex-1">
+                            <div class="text-sm">
+                                <span class="font-medium text-white" x-text="activity.user_name"></span>
+                                <span class="text-gray-400" x-text="activity.action"></span>
+                                <span class="font-medium text-cursor-accent" x-text="activity.target"></span>
+                            </div>
+                            <div class="text-xs text-gray-400" x-text="formatDate(activity.timestamp)"></div>
+                        </div>
+                    </div>
+                </template>
+                
+                <div x-show="teamActivity.length === 0" class="text-center py-8 text-gray-400">
+                    <i class="fas fa-clock text-3xl mb-2"></i>
+                    <p>No recent team activity</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function dashboardData() {
+    return {
+        stats: {
+            totalAgents: 0,
+            activeExecutions: 0,
+            teamMembers: 0,
+            successRate: 0
+        },
+        recentAgents: [],
+        recentExecutions: [],
+        teamActivity: [],
+        
+        async init() {
+            await this.loadStats();
+            await this.loadRecentAgents();
+            await this.loadRecentExecutions();
+            await this.loadTeamActivity();
+        },
+        
+        async loadStats() {
+            try {
+                const [agents, executions, teams] = await Promise.all([
+                    apiCall('/api/agents'),
+                    apiCall('/api/executions'),
+                    apiCall('/api/teams')
+                ]);
+                
+                this.stats.totalAgents = agents.length;
+                this.stats.activeExecutions = executions.filter(e => e.status === 'running').length;
+                this.stats.teamMembers = teams.reduce((total, team) => total + team.members.length, 0);
+                
+                const completedExecutions = executions.filter(e => e.status === 'completed' || e.status === 'failed');
+                if (completedExecutions.length > 0) {
+                    const successCount = executions.filter(e => e.status === 'completed').length;
+                    this.stats.successRate = Math.round((successCount / completedExecutions.length) * 100);
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        },
+        
+        async loadRecentAgents() {
+            try {
+                const agents = await apiCall('/api/agents');
+                this.recentAgents = agents
+                    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+                    .slice(0, 5);
+            } catch (error) {
+                console.error('Failed to load recent agents:', error);
+            }
+        },
+        
+        async loadRecentExecutions() {
+            try {
+                const executions = await apiCall('/api/executions');
+                this.recentExecutions = executions.slice(0, 5);
+            } catch (error) {
+                console.error('Failed to load recent executions:', error);
+            }
+        },
+        
+        async loadTeamActivity() {
+            // Mock team activity data
+            this.teamActivity = [
+                {
+                    id: 1,
+                    user_name: 'Alice',
+                    user_avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Alice',
+                    action: 'created agent',
+                    target: 'Data Analyzer',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString()
+                },
+                {
+                    id: 2,
+                    user_name: 'Bob',
+                    user_avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Bob',
+                    action: 'executed',
+                    target: 'Code Assistant',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString()
+                }
+            ];
+        },
+        
+        getStatusIcon(status) {
+            const classes = {
+                'pending': 'bg-gray-400',
+                'running': 'bg-cursor-warning',
+                'completed': 'bg-cursor-success',
+                'failed': 'bg-cursor-error'
+            };
+            return classes[status] || 'bg-gray-400';
+        },
+        
+        getStatusClass(status) {
+            const classes = {
+                'pending': 'text-gray-400',
+                'running': 'text-cursor-warning',
+                'completed': 'text-cursor-success',
+                'failed': 'text-cursor-error'
+            };
+            return classes[status] || 'text-gray-400';
+        },
+        
+        formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInHours = (now - date) / (1000 * 60 * 60);
+            
+            if (diffInHours < 1) {
+                return Math.floor(diffInHours * 60) + 'm ago';
+            } else if (diffInHours < 24) {
+                return Math.floor(diffInHours) + 'h ago';
+            } else {
+                return Math.floor(diffInHours / 24) + 'd ago';
+            }
+        }
+    }
+}
+
+// Refresh function for websocket updates
+window.refreshExecutions = function() {
+    // This will be called when executions complete
+    const dashboardComponent = Alpine.$data(document.querySelector('[x-data="dashboardData()"]'));
+    if (dashboardComponent) {
+        dashboardComponent.loadStats();
+        dashboardComponent.loadRecentExecutions();
+    }
+};
+</script>
+{% endblock %}

@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block page_title %}Agents{% endblock %}
+{% block page_description %}Manage and execute your AI agents{% endblock %}
+
+{% block content %}
+<div class="p-6" x-data="agentsPage()">
+    <!-- Filters and Actions -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+        <div class="flex items-center space-x-4">
+            <!-- Search -->
+            <div class="relative">
+                <input type="text" x-model="searchQuery" @input="filterAgents()"
+                       placeholder="Search agents..." 
+                       class="w-64 bg-cursor-hover border border-cursor-border rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:border-cursor-accent">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+            
+            <!-- Filter by capability -->
+            <select x-model="selectedCapability" @change="filterAgents()"
+                    class="bg-cursor-hover border border-cursor-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cursor-accent">
+                <option value="">All Capabilities</option>
+                <option value="code_generation">Code Generation</option>
+                <option value="data_analysis">Data Analysis</option>
+                <option value="ui_design">UI Design</option>
+                <option value="writing">Writing</option>
+                <option value="research">Research</option>
+            </select>
+            
+            <!-- View Toggle -->
+            <div class="flex items-center bg-cursor-hover border border-cursor-border rounded-lg p-1">
+                <button @click="viewMode = 'grid'" 
+                        :class="viewMode === 'grid' ? 'bg-cursor-accent text-white' : 'text-gray-400'"
+                        class="px-3 py-1 rounded text-sm transition-colors">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button @click="viewMode = 'list'" 
+                        :class="viewMode === 'list' ? 'bg-cursor-accent text-white' : 'text-gray-400'"
+                        class="px-3 py-1 rounded text-sm transition-colors">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+            <span class="text-sm text-gray-400" x-text="`${filteredAgents.length} agents`"></span>
+            <button onclick="createAgent()" 
+                    class="bg-cursor-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2">
+                <i class="fas fa-plus"></i>
+                <span>New Agent</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Agents Grid/List -->
+    <div x-show="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <template x-for="agent in filteredAgents" :key="agent.id">
+            <div class="bg-cursor-dark border border-cursor-border rounded-lg p-6 agent-card-hover cursor-pointer"
+                 @click="viewAgent(agent.id)">
+                <!-- Agent Header -->
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-cursor-accent to-cursor-success rounded-lg flex items-center justify-center">
+                        <i class="fas fa-robot text-white"></i>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span :class="agent.is_active ? 'bg-cursor-success' : 'bg-gray-500'" 
+                              class="w-2 h-2 rounded-full"></span>
+                        <div class="relative">
+                            <button @click.stop="showAgentMenu = showAgentMenu === agent.id ? null : agent.id"
+                                    class="text-gray-400 hover:text-white p-1">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div x-show="showAgentMenu === agent.id" @click.away="showAgentMenu = null"
+                                 class="absolute right-0 top-8 w-48 bg-cursor-dark border border-cursor-border rounded-lg py-2 z-10">
+                                <button @click.stop="executeAgent(agent)" 
+                                        class="w-full text-left px-4 py-2 hover:bg-cursor-hover text-cursor-accent">
+                                    <i class="fas fa-play mr-2"></i>Execute
+                                </button>
+                                <button @click.stop="editAgent(agent)" 
+                                        class="w-full text-left px-4 py-2 hover:bg-cursor-hover text-white">
+                                    <i class="fas fa-edit mr-2"></i>Edit
+                                </button>
+                                <button @click.stop="duplicateAgent(agent)" 
+                                        class="w-full text-left px-4 py-2 hover:bg-cursor-hover text-white">
+                                    <i class="fas fa-copy mr-2"></i>Duplicate
+                                </button>
+                                <hr class="border-cursor-border my-2">
+                                <button @click.stop="deleteAgent(agent)" 
+                                        class="w-full text-left px-4 py-2 hover:bg-cursor-hover text-cursor-error">
+                                    <i class="fas fa-trash mr-2"></i>Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Agent Info -->
+                <div class="mb-4">
+                    <h3 class="font-semibold text-white mb-2" x-text="agent.name"></h3>
+                    <p class="text-sm text-gray-400 line-clamp-3" x-text="agent.description || 'No description'"></p>
+                </div>
+                
+                <!-- Agent Capabilities -->
+                <div class="mb-4">
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="capability in agent.capabilities.slice(0, 3)" :key="capability">
+                            <span class="text-xs bg-cursor-hover text-gray-300 px-2 py-1 rounded-full" 
+                                  x-text="capability.replace('_', ' ')"></span>
+                        </template>
+                        <span x-show="agent.capabilities.length > 3" 
+                              class="text-xs text-gray-400" 
+                              x-text="`+${agent.capabilities.length - 3} more`"></span>
+                    </div>
+                </div>
+                
+                <!-- Agent Stats -->
+                <div class="flex items-center justify-between text-sm text-gray-400">
+                    <div class="flex items-center space-x-4">
+                        <span x-text="`${agent.execution_count} runs`"></span>
+                        <span x-text="agent.model"></span>
+                    </div>
+                    <span x-text="formatDate(agent.updated_at)"></span>
+                </div>
+            </div>
+        </template>
+    </div>
+    
+    <!-- List View -->
+    <div x-show="viewMode === 'list'" class="bg-cursor-dark border border-cursor-border rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-cursor-border">
+            <div class="grid grid-cols-12 gap-4 text-sm font-medium text-gray-400">
+                <div class="col-span-4">Agent</div>
+                <div class="col-span-3">Capabilities</div>
+                <div class="col-span-2">Model</div>
+                <div class="col-span-2">Runs</div>
+                <div class="col-span-1">Actions</div>
+            </div>
+        </div>
+        <div class="divide-y divide-cursor-border">
+            <template x-for="agent in filteredAgents" :key="agent.id">
+                <div class="px-6 py-4 hover:bg-cursor-hover transition-colors">
+                    <div class="grid grid-cols-12 gap-4 items-center">
+                        <div class="col-span-4 flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-gradient-to-r from-cursor-accent to-cursor-success rounded-lg flex items-center justify-center">
+                                <i class="fas fa-robot text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-white" x-text="agent.name"></div>
+                                <div class="text-sm text-gray-400 truncate" x-text="agent.description"></div>
+                            </div>
+                        </div>
+                        <div class="col-span-3">
+                            <div class="flex flex-wrap gap-1">
+                                <template x-for="capability in agent.capabilities.slice(0, 2)" :key="capability">
+                                    <span class="text-xs bg-cursor-hover text-gray-300 px-2 py-1 rounded-full" 
+                                          x-text="capability.replace('_', ' ')"></span>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="col-span-2 text-sm text-gray-300" x-text="agent.model"></div>
+                        <div class="col-span-2 text-sm text-gray-300" x-text="agent.execution_count"></div>
+                        <div class="col-span-1">
+                            <button @click="executeAgent(agent)" 
+                                    class="text-cursor-accent hover:text-blue-400 p-2">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+    
+    <!-- Empty State -->
+    <div x-show="filteredAgents.length === 0" class="text-center py-12">
+        <div class="w-16 h-16 bg-cursor-dark border border-cursor-border rounded-lg flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-robot text-gray-400 text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-white mb-2">No agents found</h3>
+        <p class="text-gray-400 mb-6" x-text="searchQuery ? 'Try adjusting your search terms' : 'Create your first agent to get started'"></p>
+        <button onclick="createAgent()" 
+                class="bg-cursor-accent hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+            Create Your First Agent
+        </button>
+    </div>
+</div>
+
+<!-- Execute Agent Modal -->
+<div id="executeAgentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" x-data="executeAgentModal()">
+    <div class="bg-cursor-dark border border-cursor-border rounded-lg w-full max-w-lg">
+        <div class="p-6 border-b border-cursor-border">
+            <h2 class="text-xl font-bold text-white">Execute Agent</h2>
+        </div>
+        <div class="p-6">
+            <div class="mb-4">
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-r from-cursor-accent to-cursor-success rounded-lg flex items-center justify-center">
+                        <i class="fas fa-robot text-white"></i>
+                    </div>
+                    <div>
+                        <div class="font-medium text-white" x-text="selectedAgent?.name"></div>
+                        <div class="text-sm text-gray-400" x-text="selectedAgent?.description"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <form @submit.prevent="executeAgent()">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Task Description</label>
+                    <textarea x-model="taskDescription" rows="4" required
+                              class="w-full bg-cursor-hover border border-cursor-border rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cursor-accent"
+                              placeholder="Describe what you want the agent to do..."></textarea>
+                </div>
+                
+                <div class="flex items-center justify-end space-x-4">
+                    <button type="button" onclick="closeModal('executeAgentModal')"
+                            class="px-6 py-2 border border-cursor-border rounded-lg text-gray-300 hover:text-white transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" :disabled="isExecuting"
+                            class="px-6 py-2 bg-cursor-accent hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50">
+                        <span x-show="!isExecuting">Execute</span>
+                        <span x-show="isExecuting">Executing...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function agentsPage() {
+    return {
+        agents: [],
+        filteredAgents: [],
+        searchQuery: '',
+        selectedCapability: '',
+        viewMode: 'grid',
+        showAgentMenu: null,
+        
+        async init() {
+            await this.loadAgents();
+        },
+        
+        async loadAgents() {
+            try {
+                this.agents = await apiCall('/api/agents');
+                this.filteredAgents = [...this.agents];
+            } catch (error) {
+                console.error('Failed to load agents:', error);
+                showNotification('Failed to load agents', 'error');
+            }
+        },
+        
+        filterAgents() {
+            this.filteredAgents = this.agents.filter(agent => {
+                const matchesSearch = !this.searchQuery || 
+                    agent.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                    agent.description.toLowerCase().includes(this.searchQuery.toLowerCase());
+                
+                const matchesCapability = !this.selectedCapability || 
+                    agent.capabilities.includes(this.selectedCapability);
+                
+                return matchesSearch && matchesCapability;
+            });
+        },
+        
+        viewAgent(agentId) {
+            window.location.href = `/agent/${agentId}`;
+        },
+        
+        executeAgent(agent) {
+            const modal = Alpine.$data(document.querySelector('#executeAgentModal [x-data]'));
+            modal.selectedAgent = agent;
+            document.getElementById('executeAgentModal').classList.remove('hidden');
+        },
+        
+        editAgent(agent) {
+            // TODO: Implement edit modal
+            showNotification('Edit functionality coming soon!', 'info');
+        },
+        
+        duplicateAgent(agent) {
+            // TODO: Implement duplication
+            showNotification('Duplicate functionality coming soon!', 'info');
+        },
+        
+        async deleteAgent(agent) {
+            if (!confirm(`Are you sure you want to delete "${agent.name}"?`)) return;
+            
+            try {
+                await apiCall(`/api/agents/${agent.id}`, { method: 'DELETE' });
+                showNotification('Agent deleted successfully', 'success');
+                await this.loadAgents();
+            } catch (error) {
+                showNotification(`Failed to delete agent: ${error.message}`, 'error');
+            }
+        },
+        
+        formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInHours = (now - date) / (1000 * 60 * 60);
+            
+            if (diffInHours < 1) {
+                return Math.floor(diffInHours * 60) + 'm ago';
+            } else if (diffInHours < 24) {
+                return Math.floor(diffInHours) + 'h ago';
+            } else {
+                return Math.floor(diffInHours / 24) + 'd ago';
+            }
+        }
+    }
+}
+
+function executeAgentModal() {
+    return {
+        selectedAgent: null,
+        taskDescription: '',
+        isExecuting: false,
+        
+        async executeAgent() {
+            if (this.isExecuting || !this.selectedAgent) return;
+            
+            this.isExecuting = true;
+            
+            try {
+                const response = await apiCall(`/api/agents/${this.selectedAgent.id}/execute`, {
+                    method: 'POST',
+                    body: JSON.stringify({ task: this.taskDescription })
+                });
+                
+                showNotification('Agent execution started!', 'success');
+                closeModal('executeAgentModal');
+                
+                // Reset form
+                this.taskDescription = '';
+                this.selectedAgent = null;
+                
+                // Redirect to executions page
+                setTimeout(() => {
+                    window.location.href = '/executions';
+                }, 1000);
+                
+            } catch (error) {
+                showNotification(`Failed to execute agent: ${error.message}`, 'error');
+            } finally {
+                this.isExecuting = false;
+            }
+        }
+    }
+}
+</script>
+{% endblock %}
