@@ -1,42 +1,52 @@
+# Core dependencies
 pydantic~=2.10.6
 openai~=1.66.3
 tenacity~=9.0.0
 pyyaml~=6.0.2
 loguru~=0.7.3
 numpy
-datasets~=3.4.1
 fastapi~=0.115.11
+uvicorn~=0.34.0
 tiktoken~=0.9.0
 
-html2text~=2024.2.26
-gymnasium~=1.1.1
+# Data analysis (used by DataAnalysis agent)
+datasets~=3.4.1
+
+# Image processing (used by browser agents for screenshots)
 pillow>=10.4,<11.0
-browsergym~=0.13.3
-uvicorn~=0.34.0
-unidiff~=0.7.5
-browser-use~=0.1.40
-googlesearch-python~=1.3.0
-baidusearch~=1.0.3
-duckduckgo_search~=7.5.3
 
-aiofiles~=24.1.0
-pydantic_core~=2.27.2
-colorama~=0.4.6
-playwright~=1.51.0
-
-docker~=7.1.0
-pytest~=8.3.5
-pytest-asyncio~=0.25.3
-
-mcp~=1.5.0
-httpx>=0.27.0
-tomli>=2.0.0
-
-boto3~=1.37.18
-
+# Web scraping and crawling
+html2text~=2024.2.26
+crawl4ai~=0.6.3
 requests~=2.32.3
 beautifulsoup4~=4.13.3
-crawl4ai~=0.6.3
 
-huggingface-hub~=0.29.2
-setuptools~=75.8.0
+# Browser automation
+playwright~=1.51.0
+browser-use~=0.1.40
+
+# Search engines
+googlesearch-python~=1.3.0
+duckduckgo_search~=7.5.3
+
+# File handling and utilities
+aiofiles~=24.1.0
+unidiff~=0.7.5
+colorama~=0.4.6
+
+# HTTP client
+httpx>=0.27.0
+
+# Configuration
+tomli>=2.0.0
+
+# MCP protocol
+mcp~=1.5.0
+
+# Testing (development only)
+pytest~=8.3.5
+pytest-asyncio~=0.25.3
+flask
+baidusearch
+boto3
+docker
