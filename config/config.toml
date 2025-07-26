@@ -1,28 +1,56 @@
 # Global LLM configuration with multi-API key support
 [llm]
-model = "gemini-2.0-flash"       # The LLM model to use
+model = "gemini-2.5-pro"       # The LLM model to use
 base_url = "https://generativelanguage.googleapis.com/v1beta/openai/" # API endpoint URL
-max_tokens = 8000                          # Maximum number of tokens in the response
-temperature = 0.0                          # Controls randomness
+api_key = "AIzaSyAwd6PcBM-07xBbbuBqBPc3svJsUMvyc1E" 
+max_tokens = 60000                          # Maximum number of tokens in the response
+temperature = 0.7                         # Controls randomness
 
 # Multi-API key configuration with rate limiting and automatic rotation
 # When one key hits rate limit, system automatically tries the next available key
 [[llm.api_keys]]
 api_key = "AIzaSyAwd6PcBM-07xBbbuBqBPc3svJsUMvyc1E"           # Primary API key
 name = "Primary Key"                       # Optional name for identification
-max_requests_per_minute = 15               # Rate limit: requests per minute
-max_requests_per_hour = 3600               # Rate limit: requests per hour
-max_requests_per_day = 86400               # Rate limit: requests per day
+max_requests_per_minute = 5               # Rate limit: requests per minute
+max_requests_per_hour = 100               # Rate limit: requests per hour
+max_requests_per_day = 100               # Rate limit: requests per day
 priority = 1                               # Priority (lower = higher priority)
 enabled = true                             # Whether this key is active
 
 [[llm.api_keys]]
 api_key = "AIzaSyDwDj4i9tptBolcKGHMlqxMOi_CjisQdJE"         # Secondary API key
 name = "Secondary Key"                     # Optional name for identification
-max_requests_per_minute = 30               # Different rate limits per key
-max_requests_per_hour = 1800
-max_requests_per_day = 43200
+max_requests_per_minute = 5               # Different rate limits per key
+max_requests_per_hour = 100
+max_requests_per_day = 100
 priority = 2                               # Lower priority than primary
+enabled = true
+
+[[llm.api_keys]]
+api_key = "AIzaSyClSfseWKkublCjdZBIq-aYqPoB3jEWj28"         # Secondary API key
+name = "3 Key"                     # Optional name for identification
+max_requests_per_minute = 5               # Different rate limits per key
+max_requests_per_hour = 100
+max_requests_per_day = 100
+priority = 3                               # Lower priority than primary
+enabled = true
+
+[[llm.api_keys]]
+api_key = "AIzaSyD_ElDcTSosqzd4Dy9L-4ygL3fP2zsWtq0"         # Secondary API key
+name = "4 Key"                     # Optional name for identification
+max_requests_per_minute = 5               # Different rate limits per key
+max_requests_per_hour = 100
+max_requests_per_day = 100
+priority = 4                             # Lower priority than primary
+enabled = true
+
+[[llm.api_keys]]
+api_key = "AIzaSyAf__tW7KcUD1-uh9RzGg6Y5eS6e3_PNB0"         # Secondary API key
+name = "5 Key"                     # Optional name for identification
+max_requests_per_minute = 5               # Different rate limits per key
+max_requests_per_hour = 100
+max_requests_per_day = 100
+priority = 5                               # Lower priority than primary
 enabled = true
 
 # [llm.vision] #OLLAMA VISION:
@@ -88,4 +116,4 @@ server_reference = "app.mcp.server" # default server module reference
 # Optional Runflow configuration
 # Your can add additional agents into run-flow workflow to solve different-type tasks.
 [runflow]
-use_data_analysis_agent = false     # The Data Analysi Agent to solve various data analysis tasks
+use_data_analysis_agent = true     # The Data Analysi Agent to solve various data analysis tasks
